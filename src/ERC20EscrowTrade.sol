@@ -36,7 +36,7 @@ contract ERC20EscrowTrade {
 
     function withdrawParty1() public {
         if (msg.sender != party1) revert YouAreNotParty1();
-        if (!((currency1.balanceOf(address(this)) == amt1) && (currency2.balanceOf(address(this)) == amt2))) {
+        if (!((currency1.balanceOf(address(this)) >= amt1) && (currency2.balanceOf(address(this)) >= amt2))) {
             revert BothPartiesMustBeDeposited();
         }
         if (party1IsWithdrawn) revert YouHaveAlreadyWithdrawn();
@@ -46,7 +46,7 @@ contract ERC20EscrowTrade {
 
     function withdrawParty2() public {
         if (msg.sender != party2) revert YouAreNotParty2();
-        if (!((currency1.balanceOf(address(this)) == amt1) && (currency2.balanceOf(address(this)) == amt2))) {
+        if (!((currency1.balanceOf(address(this)) >= amt1) && (currency2.balanceOf(address(this)) >= amt2))) {
             revert BothPartiesMustBeDeposited();
         }
         if (party2IsWithdrawn) revert YouHaveAlreadyWithdrawn();
