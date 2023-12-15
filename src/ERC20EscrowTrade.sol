@@ -56,9 +56,7 @@ contract ERC20EscrowTrade {
 
     // Send escrowed funds to their respective beneficiaries.
     // Can only execute once.
-    // In order to execute:
-    //  - You must have already put enough in
-    //  - The other party must have already put enough in
+    // In order to execute both parties have to have put at least their respective amounts in.
 
     function executeTrade() public {
         if ((msg.sender != party1) && (msg.sender != party2)) revert YouAreNotAParty();
