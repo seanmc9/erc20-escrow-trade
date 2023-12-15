@@ -82,7 +82,7 @@ contract ERC20EscrowTrade {
         if ((msg.sender != party1) && (msg.sender != party2)) revert YouAreNotAParty();
         
         IERC20 currencyToWithdraw = (msg.sender == party1) ? currency1 : currency2;
-        uint256 overThisIsExtra = tradeHasExecuted ? 0 : (msg.sender == party1 ? amt1 : amt2);
+        uint256 overThisIsExtra = tradeHasExecuted ? 0 : ((msg.sender == party1) ? amt1 : amt2);
         if (currencyToWithdraw.balanceOf(address(this)) <= overThisIsExtra) revert ThereIsNoExtra();
 
         SafeERC20.safeTransfer(currencyToWithdraw, msg.sender, (currencyToWithdraw.balanceOf(address(this)) - overThisIsExtra));
