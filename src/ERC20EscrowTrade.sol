@@ -61,7 +61,7 @@ contract ERC20EscrowTrade {
 
     ////////////////////
 
-    // WITHDRAWING EXTRA
+    // EXECUTING
 
     // Withdrawing the other party's escrowed funds.
     // Once one party executes, neither can back out
@@ -99,7 +99,7 @@ contract ERC20EscrowTrade {
 
     ////////////////////
 
-    // BACKING OUT
+    // WITHDRAWING EXTRA
 
     // For if either party accidentally sent in too much at any point.
     // Can call at any point.
