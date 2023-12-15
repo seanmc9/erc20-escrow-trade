@@ -15,7 +15,7 @@ contract ERC20EscrowTrade {
     bool public tradeHasExecuted;
 
     error YouAreNotAParty();
-    error NeitherPartyCanBackout();
+    error CannotBackoutOnceExecuted();
     error TradeHasAlreadyExecuted();
     error Party1HasNotDepositedEnough();
     error Party2HasNotDepositedEnough();
@@ -39,20 +39,17 @@ contract ERC20EscrowTrade {
     // BACKING OUT
 
     // Taking all money that you have put into the contract out.
-    // Cannot do once 1 party has executed.
-    // Reasoning for why you can't back out once 1 party has executed:
-    //  - if someone has executed and you are the executor, your funds are now locked for the other person to take
-    //  - if someone has executed and you are not the executor, your funds have been taken
+    // Cannot do once the trade has been executed.
 
     function backoutParty1() public {
         if (msg.sender != party1) revert YouAreNotParty1();
-        if (party1HasExecuted || party2HasExecuted) revert NeitherPartyCanBackout();
+        if (tradeHasExecuted) revert CannotBackoutOnceExecuted();
         SafeERC20.safeTransfer(currency1, party1, currency1.balanceOf(address(this)));
     }
 
-    function backoutOwnParty2() public {
+    function backoutParty2() public {
         if (msg.sender != party2) revert YouAreNotParty2();
-        if (party1HasExecuted || party2HasExecuted) revert NeitherPartyCanBackout();
+        if (tradeHasExecuted) revert CannotBackoutOnceExecuted();
         SafeERC20.safeTransfer(currency2, party2, currency2.balanceOf(address(this)));
     }
 
@@ -60,12 +57,10 @@ contract ERC20EscrowTrade {
 
     // EXECUTING
 
-    // Withdrawing the other party's escrowed funds.
-    // Once one party executes, neither can back out.
-    // Each party can only execute once.
+    // Send escrowed funds to their respective beneficiaries.
+    // Can only execute once.
     // In order to execute:
     //  - You must have already put enough in
-    //      AND
     //  - The other party must have already put enough in
 
     function executeTrade() public {
@@ -85,20 +80,20 @@ contract ERC20EscrowTrade {
     // WITHDRAWING EXTRA
 
     // For if either party accidentally sent in too much at any point.
-    // Extra is the amount over the amount you're supposed to send if your counterparty hasn't executed yet, and it's 
-    //  the amount over 0 if they have.
+    // Extra is the amount over the amount you're supposed to send if the trade hasn't executed yet, and it's 
+    //  the amount over 0 if it has been.
     // Can call at any point.
 
-    function withdrawExtraOwnParty1() public {
+    function withdrawExtraParty1() public {
         if (msg.sender != party1) revert YouAreNotParty1();
-        uint256 amtToCompareAgainst = party2HasExecuted ? 0 : amt1;
+        uint256 amtToCompareAgainst = tradeHasExecuted ? 0 : amt1;
         if (currency1.balanceOf(address(this)) <= amtToCompareAgainst) revert ThereIsNoExtra();
         SafeERC20.safeTransfer(currency1, party1, (currency1.balanceOf(address(this)) - amtToCompareAgainst));
     }
 
-    function withdrawExtraOwnParty2() public {
+    function withdrawExtraParty2() public {
         if (msg.sender != party2) revert YouAreNotParty2();
-        uint256 amtToCompareAgainst = party1HasExecuted ? 0 : amt2;
+        uint256 amtToCompareAgainst = tradeHasExecuted ? 0 : amt2;
         if (currency2.balanceOf(address(this)) <= amtToCompareAgainst) revert ThereIsNoExtra();
         SafeERC20.safeTransfer(currency2, party2, (currency2.balanceOf(address(this)) - amtToCompareAgainst));
     }
