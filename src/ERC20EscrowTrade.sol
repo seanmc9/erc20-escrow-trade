@@ -12,8 +12,8 @@ contract ERC20EscrowTrade {
     uint256 public amt1; // amount of currency1 that party1 will be sending
     uint256 public amt2; // amount of currency2 that party2 will be sending
 
-    bool party1HasExecuted;
-    bool party2HasExecuted;
+    bool public party1HasExecuted;
+    bool public party2HasExecuted;
 
     error YouAreNotParty1();
     error YouAreNotParty2();
