@@ -77,7 +77,7 @@ contract ERC20EscrowTrade {
     // WITHDRAWING EXTRA
 
     // For if either party accidentally sent in too much at any point.
-    // If the trade has been executed, anything left is extra, if it hasn't yet then anything over the 
+    // If the trade has been executed, anything left is extra, if it hasn't yet then anything over the calling party's amount is extra.
     // Can call at any point.
 
     function withdrawExtra() public {
