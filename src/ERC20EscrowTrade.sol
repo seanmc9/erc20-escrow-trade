@@ -35,15 +35,15 @@ contract ERC20EscrowTrade {
 
     ////////////////////
 
-    // START BY EACH PARTY SENDING THEIR AMOUNT OF THEIR TOKEN (bc fuck approval flows)
+    // START BY EACH PARTY SENDING THEIR AMOUNT OF THEIR TOKEN TO THIS CONTRACT (bc all my homies hate approval flows)
 
     ////////////////////
 
     // BACKING OUT
 
     // Taking all money that you have put into the contract out.
-    // Cannot do once either party has executed.
-    // Reasoning for why you can't back out once 1 person has executed:
+    // Cannot do once 1 party has executed.
+    // Reasoning for why you can't back out once 1 party has executed:
     //  - if someone has executed and you are the executor, your funds are now locked for the other person to take
     //  - if someone has executed and you are not the executor, your funds have been taken
 
@@ -64,7 +64,7 @@ contract ERC20EscrowTrade {
     // EXECUTING
 
     // Withdrawing the other party's escrowed funds.
-    // Once one party executes, neither can back out
+    // Once one party executes, neither can back out.
     // Each party can only execute once.
     // In order to execute:
     //  - You must have already put enough in
@@ -102,6 +102,8 @@ contract ERC20EscrowTrade {
     // WITHDRAWING EXTRA
 
     // For if either party accidentally sent in too much at any point.
+    // Extra is the amount over the amount you're supposed to send if your counterparty hasn't executed yet, and it's 
+    //  the amount over 0 if they have.
     // Can call at any point.
 
     function withdrawExtraOwnParty1() public {
