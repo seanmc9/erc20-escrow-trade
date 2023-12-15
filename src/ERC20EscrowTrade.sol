@@ -4,18 +4,6 @@ pragma solidity ^0.8.19;
 import "@openzeppelin/token/ERC20/IERC20.sol";
 import "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 
-// HOW THE ESCROW WORKS
-// 1. Create this contract.
-// 2. Each party sends the amount they need to (their amt) directly to the contract (bc ugh, fuck approvals).
-// 3. Once each party has sent at least the amount they agreed to to the contract, each party withdraws.
-//      - Once you withdraw *their* amt, you can't back out/withdraw *your* amt.
-//      - eg. Person A wants to trade Person B 100 DAI for 1 WETH.
-//            Person A can only take Person B's WETH once 1. Person B has put it in and 2. Person A has put in enough.
-//            Up until Person A takes Person B's WETH, they can pull their DAI out at any point.
-//            As soon as Person A takes Person B's WETH, however, Person A can't take any of their DAI out except the amount that they overpaid if they overpaid.
-//
-// At any point, if either party sent too much to the contract, then each party can withdraw the overage of whatever currency they deposited.
-
 contract ERC20EscrowTrade {
     address public party1;
     address public party2;
@@ -45,7 +33,16 @@ contract ERC20EscrowTrade {
         amt2 = amt2_;
     }
 
-    // Only before either party has executed.
+    ////////////////////
+
+    // START BY EACH PARTY SENDING THEIR AMOUNT OF THEIR TOKEN (bc fuck approval flows)
+
+    ////////////////////
+
+    // BACKING OUT
+
+    // Taking all money that you have put into the contract out.
+    // Cannot do once either party has executed.
     // Reasoning for why you can't back out once 1 person has executed:
     //  - if someone has executed and you are the executor, your funds are now locked for the other person to take
     //  - if someone has executed and you are not the executor, your funds have been taken
@@ -62,8 +59,12 @@ contract ERC20EscrowTrade {
         SafeERC20.safeTransfer(currency2, party2, currency2.balanceOf(address(this)));
     }
 
+    ////////////////////
+
+    // WITHDRAWING EXTRA
+
     // Withdrawing the other party's escrowed funds.
-    // Once you execute you can't back out.
+    // Once one party executes, neither can back out
     // Each party can only execute once.
     // In order to execute:
     //  - You must have already put enough in
@@ -96,7 +97,12 @@ contract ERC20EscrowTrade {
         party2HasExecuted = true;
     }
 
+    ////////////////////
+
+    // BACKING OUT
+
     // For if either party accidentally sent in too much at any point.
+    // Can call at any point.
 
     function withdrawExtraOwnParty1() public {
         if (msg.sender != party1) revert YouAreNotParty1();
