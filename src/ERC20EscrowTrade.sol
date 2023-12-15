@@ -74,27 +74,27 @@ contract ERC20EscrowTrade {
     function executeTradeParty1() public {
         if (msg.sender != party1) revert YouAreNotParty1();
         if (party1HasExecuted) revert Party1HasAlreadyExecuted();
-
         if (currency2.balanceOf(address(this)) < amt2) revert Party2HasNotDepositedEnough();
         if ((currency1.balanceOf(address(this)) < amt1) && !party2HasExecuted) {
             revert Party1HasNotDepositedEnough();
         }
 
-        SafeERC20.safeTransfer(currency2, party1, amt2);
         party1HasExecuted = true;
+
+        SafeERC20.safeTransfer(currency2, party1, amt2);
     }
 
     function executeTradeParty2() public {
         if (msg.sender != party2) revert YouAreNotParty2();
         if (party2HasExecuted) revert Party2HasAlreadyExecuted();
-
         if (currency1.balanceOf(address(this)) < amt1) revert Party1HasNotDepositedEnough();
         if ((currency2.balanceOf(address(this)) < amt2) && !party1HasExecuted) {
             revert Party2HasNotDepositedEnough();
         }
 
-        SafeERC20.safeTransfer(currency1, party2, amt1);
         party2HasExecuted = true;
+
+        SafeERC20.safeTransfer(currency1, party2, amt1);
     }
 
     ////////////////////
