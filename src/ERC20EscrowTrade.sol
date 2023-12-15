@@ -68,6 +68,7 @@ contract ERC20EscrowTrade {
     // Each party can only execute once.
     // In order to execute:
     //  - You must have already put enough in
+    //      AND
     //  - The other party must have already put enough in
 
     function executeTradeParty1() public {
