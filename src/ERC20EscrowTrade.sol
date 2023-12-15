@@ -12,14 +12,11 @@ contract ERC20EscrowTrade {
     uint256 public amt1; // amount of currency1 that party1 will be sending
     uint256 public amt2; // amount of currency2 that party2 will be sending
 
-    bool public party1HasExecuted;
-    bool public party2HasExecuted;
+    bool public tradeHasExecuted;
 
-    error YouAreNotParty1();
-    error YouAreNotParty2();
+    error YouAreNotAParty();
     error NeitherPartyCanBackout();
-    error Party1HasAlreadyExecuted();
-    error Party2HasAlreadyExecuted();
+    error TradeHasAlreadyExecuted();
     error Party1HasNotDepositedEnough();
     error Party2HasNotDepositedEnough();
     error ThereIsNoExtra();
@@ -71,30 +68,16 @@ contract ERC20EscrowTrade {
     //      AND
     //  - The other party must have already put enough in
 
-    function executeTradeParty1() public {
-        if (msg.sender != party1) revert YouAreNotParty1();
-        if (party1HasExecuted) revert Party1HasAlreadyExecuted();
-        if (currency2.balanceOf(address(this)) < amt2) revert Party2HasNotDepositedEnough();
-        if ((currency1.balanceOf(address(this)) < amt1) && !party2HasExecuted) {
-            revert Party1HasNotDepositedEnough();
-        }
-
-        party1HasExecuted = true;
-
-        SafeERC20.safeTransfer(currency2, party1, amt2);
-    }
-
-    function executeTradeParty2() public {
-        if (msg.sender != party2) revert YouAreNotParty2();
-        if (party2HasExecuted) revert Party2HasAlreadyExecuted();
+    function executeTrade() public {
+        if ((msg.sender != party1) && (msg.sender != party2)) revert YouAreNotAParty();
+        if (tradeHasExecuted) revert TradeHasAlreadyExecuted();
         if (currency1.balanceOf(address(this)) < amt1) revert Party1HasNotDepositedEnough();
-        if ((currency2.balanceOf(address(this)) < amt2) && !party1HasExecuted) {
-            revert Party2HasNotDepositedEnough();
-        }
+        if (currency2.balanceOf(address(this)) < amt2) revert Party2HasNotDepositedEnough();
 
-        party2HasExecuted = true;
+        tradeHasExecuted = true;
 
         SafeERC20.safeTransfer(currency1, party2, amt1);
+        SafeERC20.safeTransfer(currency2, party1, amt2);
     }
 
     ////////////////////
