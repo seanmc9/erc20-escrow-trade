@@ -17,7 +17,7 @@ contract ERC20EscrowTrade {
 
     error YouAreNotParty1();
     error YouAreNotParty2();
-    error NeitherPartyCanBeWithdrawn();
+    error NeitherPartyCanBackout();
     error Party1HasAlreadyExecuted();
     error Party2HasAlreadyExecuted();
     error Party1HasNotDepositedEnough();
@@ -49,13 +49,13 @@ contract ERC20EscrowTrade {
 
     function backoutParty1() public {
         if (msg.sender != party1) revert YouAreNotParty1();
-        if (party1HasExecuted || party2HasExecuted) revert NeitherPartyCanBeWithdrawn();
+        if (party1HasExecuted || party2HasExecuted) revert NeitherPartyCanBackout();
         SafeERC20.safeTransfer(currency1, party1, currency1.balanceOf(address(this)));
     }
 
     function backoutOwnParty2() public {
         if (msg.sender != party2) revert YouAreNotParty2();
-        if (party1HasExecuted || party2HasExecuted) revert NeitherPartyCanBeWithdrawn();
+        if (party1HasExecuted || party2HasExecuted) revert NeitherPartyCanBackout();
         SafeERC20.safeTransfer(currency2, party2, currency2.balanceOf(address(this)));
     }
 
@@ -88,9 +88,8 @@ contract ERC20EscrowTrade {
         if (msg.sender != party2) revert YouAreNotParty2();
         if (party2HasExecuted) revert Party2HasAlreadyExecuted();
 
-        if (currency1.balanceOf(address(this)) < amt1) revert Party1HasNotDepositedEnough(); // have they put enough in
+        if (currency1.balanceOf(address(this)) < amt1) revert Party1HasNotDepositedEnough();
         if ((currency2.balanceOf(address(this)) < amt2) && !party1HasExecuted) {
-            // have you put enough in
             revert Party2HasNotDepositedEnough();
         }
 
