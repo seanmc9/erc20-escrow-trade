@@ -41,16 +41,13 @@ contract ERC20EscrowTrade {
     // Taking all money that you have put into the contract out.
     // Cannot do once the trade has been executed.
 
-    function backoutParty1() public {
-        if (msg.sender != party1) revert YouAreNotAParty();
+    function backout() public {
+        if ((msg.sender != party1) && (msg.sender != party2)) revert YouAreNotAParty();
         if (tradeHasExecuted) revert CannotBackoutOnceExecuted();
-        SafeERC20.safeTransfer(currency1, party1, currency1.balanceOf(address(this)));
-    }
+        
+        IERC20 currencyToWithdraw = (msg.sender == party1) ? currency1 : currency2;
 
-    function backoutParty2() public {
-        if (msg.sender != party2) revert YouAreNotAParty();
-        if (tradeHasExecuted) revert CannotBackoutOnceExecuted();
-        SafeERC20.safeTransfer(currency2, party2, currency2.balanceOf(address(this)));
+        SafeERC20.safeTransfer(currencyToWithdraw, msg.sender, currencyToWithdraw.balanceOf(address(this)));
     }
 
     ////////////////////
