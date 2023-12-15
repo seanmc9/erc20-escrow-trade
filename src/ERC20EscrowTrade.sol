@@ -42,13 +42,13 @@ contract ERC20EscrowTrade {
     // Cannot do once the trade has been executed.
 
     function backoutParty1() public {
-        if (msg.sender != party1) revert YouAreNotParty1();
+        if (msg.sender != party1) revert YouAreNotAParty();
         if (tradeHasExecuted) revert CannotBackoutOnceExecuted();
         SafeERC20.safeTransfer(currency1, party1, currency1.balanceOf(address(this)));
     }
 
     function backoutParty2() public {
-        if (msg.sender != party2) revert YouAreNotParty2();
+        if (msg.sender != party2) revert YouAreNotAParty();
         if (tradeHasExecuted) revert CannotBackoutOnceExecuted();
         SafeERC20.safeTransfer(currency2, party2, currency2.balanceOf(address(this)));
     }
@@ -80,21 +80,16 @@ contract ERC20EscrowTrade {
     // WITHDRAWING EXTRA
 
     // For if either party accidentally sent in too much at any point.
-    // Extra is the amount over the amount you're supposed to send if the trade hasn't executed yet, and it's 
-    //  the amount over 0 if it has been.
+    // If the trade has been executed, anything left is extra, if it hasn't yet then anything over the 
     // Can call at any point.
 
-    function withdrawExtraParty1() public {
-        if (msg.sender != party1) revert YouAreNotParty1();
-        uint256 amtToCompareAgainst = tradeHasExecuted ? 0 : amt1;
-        if (currency1.balanceOf(address(this)) <= amtToCompareAgainst) revert ThereIsNoExtra();
-        SafeERC20.safeTransfer(currency1, party1, (currency1.balanceOf(address(this)) - amtToCompareAgainst));
-    }
+    function withdrawExtra() public {
+        if ((msg.sender != party1) && (msg.sender != party2)) revert YouAreNotAParty();
+        
+        IERC20 currencyToWithdraw = (msg.sender == party1) ? currency1 : currency2;
+        uint256 overThisIsExtra = tradeHasExecuted ? 0 : (msg.sender == party1 ? amt1 : amt2);
+        if (currencyToWithdraw.balanceOf(address(this)) <= overThisIsExtra) revert ThereIsNoExtra();
 
-    function withdrawExtraParty2() public {
-        if (msg.sender != party2) revert YouAreNotParty2();
-        uint256 amtToCompareAgainst = tradeHasExecuted ? 0 : amt2;
-        if (currency2.balanceOf(address(this)) <= amtToCompareAgainst) revert ThereIsNoExtra();
-        SafeERC20.safeTransfer(currency2, party2, (currency2.balanceOf(address(this)) - amtToCompareAgainst));
+        SafeERC20.safeTransfer(currencyToWithdraw, msg.sender, (currencyToWithdraw.balanceOf(address(this)) - overThisIsExtra));
     }
 }
