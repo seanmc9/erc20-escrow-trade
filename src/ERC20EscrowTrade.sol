@@ -3,12 +3,13 @@ pragma solidity ^0.8.19;
 
 import "@openzeppelin/token/ERC20/IERC20.sol";
 import "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/utils/Address.sol";
 
 contract ERC20EscrowTrade {
     address public immutable party1;
     address public immutable party2;
-    IERC20 public immutable currency1; // the currency that party1 is sending
-    IERC20 public immutable currency2; // the currency that party2 is sending
+    IERC20 public immutable currency1; // the currency that party1 is sending (for native currency, set as the zero address)
+    IERC20 public immutable currency2; // the currency that party2 is sending (for native currency, set as the zero address)
     uint256 public immutable amt1; // amount of currency1 that party1 will be sending
     uint256 public immutable amt2; // amount of currency2 that party2 will be sending
 
@@ -49,7 +50,11 @@ contract ERC20EscrowTrade {
         
         IERC20 currencyToWithdraw = (msg.sender == party1) ? currency1 : currency2;
 
-        SafeERC20.safeTransfer(currencyToWithdraw, msg.sender, currencyToWithdraw.balanceOf(address(this)));
+        if (address(currencyToWithdraw) == address(0)) {
+            Address.sendValue(payable(msg.sender), address(this).balance);
+        } else {
+            SafeERC20.safeTransfer(currencyToWithdraw, msg.sender, currencyToWithdraw.balanceOf(address(this)));
+        }
     }
 
     ////////////////////
@@ -62,13 +67,22 @@ contract ERC20EscrowTrade {
     function executeTrade() public {
         if ((msg.sender != party1) && (msg.sender != party2)) revert YouAreNotAParty();
         if (tradeHasExecuted) revert TradeHasAlreadyExecuted();
-        if (currency1.balanceOf(address(this)) < amt1) revert Party1HasNotDepositedEnough();
-        if (currency2.balanceOf(address(this)) < amt2) revert Party2HasNotDepositedEnough();
+        if (address(currency1) == address(0) ? (address(this).balance < amt1) : (currency1.balanceOf(address(this)) < amt1)) revert Party1HasNotDepositedEnough();
+        if (address(currency2) == address(0) ? (address(this).balance < amt2) : (currency2.balanceOf(address(this)) < amt2)) revert Party2HasNotDepositedEnough();
 
         tradeHasExecuted = true;
 
-        SafeERC20.safeTransfer(currency1, party2, amt1);
-        SafeERC20.safeTransfer(currency2, party1, amt2);
+        if (address(currency1) == address(0)) {
+            Address.sendValue(payable(party2), amt1);
+        } else {
+            SafeERC20.safeTransfer(currency1, party2, amt1);
+        }
+
+        if (address(currency2) == address(0)) {
+            Address.sendValue(payable(party1), amt2);
+        } else {
+            SafeERC20.safeTransfer(currency2, party1, amt2);
+        }
     }
 
     ////////////////////
@@ -83,8 +97,13 @@ contract ERC20EscrowTrade {
         
         IERC20 currencyToWithdraw = (msg.sender == party1) ? currency1 : currency2;
         uint256 overThisIsExtra = tradeHasExecuted ? 0 : ((msg.sender == party1) ? amt1 : amt2);
-        if (currencyToWithdraw.balanceOf(address(this)) <= overThisIsExtra) revert ThereIsNoExtra();
+        if (address(currencyToWithdraw) == address(0) ? (address(this).balance <= overThisIsExtra) : (currencyToWithdraw.balanceOf(address(this))) <= overThisIsExtra) revert ThereIsNoExtra();
 
-        SafeERC20.safeTransfer(currencyToWithdraw, msg.sender, (currencyToWithdraw.balanceOf(address(this)) - overThisIsExtra));
+        if (address(currencyToWithdraw) == address(0)) {
+            Address.sendValue(payable(msg.sender), address(this).balance - overThisIsExtra);
+        } else {
+            SafeERC20.safeTransfer(currencyToWithdraw, msg.sender, (currencyToWithdraw.balanceOf(address(this)) - overThisIsExtra));
+        }
+
     }
 }
