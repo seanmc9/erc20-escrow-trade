@@ -5,7 +5,7 @@ import "@openzeppelin/token/ERC20/IERC20.sol";
 import "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/utils/Address.sol";
 
-contract OnchainOTC {
+contract EscrowTrade {
     address public immutable party1;
     address public immutable party2;
     IERC20 public immutable currency1; // the currency that party1 is sending (for native currency, set as the zero address)
