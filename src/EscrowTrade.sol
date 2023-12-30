@@ -34,6 +34,9 @@ contract EscrowTrade {
         amt2 = amt2_;
     }
 
+    // Mandatory function to be able to recieve native currency
+    receive() external payable {}
+
     ////////////////////
 
     // START BY EACH PARTY SENDING THEIR AMOUNT OF THEIR TOKEN TO THIS CONTRACT (bc all my homies hate approval flows)
