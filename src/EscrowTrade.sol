@@ -67,26 +67,26 @@ contract EscrowTrade {
     function executeTrade() public {
         if ((msg.sender != party1) && (msg.sender != party2)) revert YouAreNotAParty();
         if (tradeHasExecuted) revert TradeHasAlreadyExecuted();
-        if (
-            address(currency1) == address(0)
-                ? (address(this).balance < amt1)
-                : (currency1.balanceOf(address(this)) < amt1)
-        ) revert Party1HasNotDepositedEnough();
-        if (
-            address(currency2) == address(0)
-                ? (address(this).balance < amt2)
-                : (currency2.balanceOf(address(this)) < amt2)
-        ) revert Party2HasNotDepositedEnough();
+
+        bool currency1IsNative = address(currency1) == address(0);
+        bool currency2IsNative = address(currency2) == address(0);
+
+        if (currency1IsNative ? (address(this).balance < amt1) : (currency1.balanceOf(address(this)) < amt1)) {
+            revert Party1HasNotDepositedEnough();
+        }
+        if (currency2IsNative ? (address(this).balance < amt2) : (currency2.balanceOf(address(this)) < amt2)) {
+            revert Party2HasNotDepositedEnough();
+        }
 
         tradeHasExecuted = true;
 
-        if (address(currency1) == address(0)) {
+        if (currency1IsNative) {
             Address.sendValue(payable(party2), amt1);
         } else {
             SafeERC20.safeTransfer(currency1, party2, amt1);
         }
 
-        if (address(currency2) == address(0)) {
+        if (currency2IsNative) {
             Address.sendValue(payable(party1), amt2);
         } else {
             SafeERC20.safeTransfer(currency2, party1, amt2);
@@ -104,14 +104,16 @@ contract EscrowTrade {
         if ((msg.sender != party1) && (msg.sender != party2)) revert YouAreNotAParty();
 
         IERC20 currencyToWithdraw = (msg.sender == party1) ? currency1 : currency2;
+        bool currencyToWithdrawIsNative = address(currency1) == address(0);
+
         uint256 overThisIsExtra = tradeHasExecuted ? 0 : ((msg.sender == party1) ? amt1 : amt2);
         if (
-            address(currencyToWithdraw) == address(0)
+            currencyToWithdrawIsNative
                 ? (address(this).balance <= overThisIsExtra)
                 : (currencyToWithdraw.balanceOf(address(this))) <= overThisIsExtra
         ) revert ThereIsNoExtra();
 
-        if (address(currencyToWithdraw) == address(0)) {
+        if (currencyToWithdrawIsNative) {
             Address.sendValue(payable(msg.sender), address(this).balance - overThisIsExtra);
         } else {
             SafeERC20.safeTransfer(
