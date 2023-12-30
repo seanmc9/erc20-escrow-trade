@@ -14,6 +14,7 @@ contract ERC20EscrowTrade {
 
     bool public tradeHasExecuted;
 
+    error CurrenciesCannotBeTheSame();
     error YouAreNotAParty();
     error CannotBackoutOnceExecuted();
     error TradeHasAlreadyExecuted();
@@ -22,6 +23,8 @@ contract ERC20EscrowTrade {
     error ThereIsNoExtra();
 
     constructor(address party1_, address party2_, IERC20 currency1_, IERC20 currency2_, uint256 amt1_, uint256 amt2_) {
+        if (currency1_ == currency2_) revert CurrenciesCannotBeTheSame();
+
         party1 = party1_;
         party2 = party2_;
         currency1 = currency1_;
